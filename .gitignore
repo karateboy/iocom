@@ -8,3 +8,6 @@ target
 /.project
 /.settings
 /RUNNING_PID
+/bin/
+/.cache-main
+/.cache-tests
