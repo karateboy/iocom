@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * application's home page.
  */
 @Singleton
-class HomeController @Inject() (repo: MinRecord, cc: ControllerComponents)(implicit assetsFinder: AssetsFinder)
+class HomeController @Inject() (users: UserDB, repo: MinRecord, cc: ControllerComponents)(implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
 
   /**
