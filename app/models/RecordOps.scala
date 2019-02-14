@@ -14,27 +14,26 @@ import play._
  * @param dbConfigProvider The Play db config provider. Play will inject this for you.
  */
 @Singleton
-class MinRecord @Inject() (dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext) {
+class RecordOps @Inject() (dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext) {
   // We want the JdbcProfile for this provider
-  private val dbConfig = dbConfigProvider.get[JdbcProfile]
+  val dbConfig = dbConfigProvider.get[JdbcProfile]
 
   // These imports are important, the first one brings db into scope, which will let you do the actual db operations.
   // The second one brings the Slick DSL into scope, which lets you define the table and other queries.
   import dbConfig._
   import profile.api._
+  import java.time._
+
+  implicit val localDateTimeToTimestamp = MappedColumnType.base[LocalDateTime, java.sql.Timestamp](
+    l => java.sql.Timestamp.valueOf(l),
+    t => t.toLocalDateTime)
 
   /**
    * Here we define the table. It will have a name of people
    */
-  private class MinTable(tag: Tag) extends Table[Record](tag, "minData") {
-    import java.time._
-
-    implicit val localDateTimeToTimestamp = MappedColumnType.base[LocalDateTime, java.sql.Timestamp](
-      l => java.sql.Timestamp.valueOf(l),
-      t => t.toLocalDateTime)
-
-    def dt = column[LocalDateTime]("dt")
-    def ch = column[Int]("Int")
+  class RawDataTable(tag: Tag) extends Table[Record](tag, "rawData") {
+    def dt = column[LocalDateTime]("DT")
+    def ch = column[Int]("Ch")
     def status = column[Int]("status")
     def v1 = column[Double]("v1")
     def v2 = column[Double]("v2")
@@ -57,6 +56,7 @@ class MinRecord @Inject() (dbConfigProvider: DatabaseConfigProvider)(implicit ec
     def v19 = column[Double]("v19")
     def v20 = column[Double]("v20")
     def flow = column[Double]("flow")
+    def coeff = column[Int]("coeff")
 
     def pk = primaryKey("pk_id", (dt, ch))
 
@@ -64,22 +64,22 @@ class MinRecord @Inject() (dbConfigProvider: DatabaseConfigProvider)(implicit ec
       v1 :: v2 :: v3 :: v4 :: v5 ::
       v6 :: v7 :: v8 :: v9 :: v10 ::
       v11 :: v12 :: v13 :: v14 :: v15 ::
-      v16 :: v17 :: v18 :: v19 :: v20 :: flow :: HNil) <> (Record.intoRecord, Record.fromRecord)
+      v16 :: v17 :: v18 :: v19 :: v20 :: flow :: coeff :: HNil) <> (Record.intoRecord, Record.fromRecord)
   }
 
   /**
    * The starting point for all queries on the people table.
    */
-  private val records = TableQuery[MinTable]
+  lazy val records = TableQuery[RawDataTable]
 
   private def init() = {
     import slick.jdbc.meta.MTable
     import scala.concurrent.duration._
     import scala.concurrent.Await
 
-    for(tables <- db.run(MTable.getTables)){
-      if(!tables.exists(table => table.name.name =="minData")){
-        Logger.info("Create minData")
+    for (tables <- db.run(MTable.getTables)) {
+      if (!tables.exists(table => table.name.name == "rawData")) {
+        Logger.info("Create rawData tab")
         db.run(records.schema.create)
       }
     }
@@ -92,7 +92,6 @@ class MinRecord @Inject() (dbConfigProvider: DatabaseConfigProvider)(implicit ec
    * This is an asynchronous operation, it will return a future of the created person, which can be used to obtain the
    * id for that person.
    */
-  import java.time._
 
   def create(rec: Record) = db.run {
     records += rec
@@ -116,5 +115,9 @@ class MinRecord @Inject() (dbConfigProvider: DatabaseConfigProvider)(implicit ec
    */
   def list(): Future[Seq[Record]] = db.run {
     records.result
+  }
+
+  def getHistoryData(start: LocalDateTime, end: LocalDateTime) = db.run {
+    records.filter(r => r.dt >= start && r.dt < end).result
   }
 }

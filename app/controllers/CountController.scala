@@ -17,7 +17,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 @Singleton
 class CountController @Inject() (
   cc:      ControllerComponents,
-  repo:    MinRecord,
+  repo:    RecordOps,
   counter: Counter) extends AbstractController(cc) {
 
   /**
