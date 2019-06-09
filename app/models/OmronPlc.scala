@@ -63,7 +63,7 @@ class OmronCollector(plc: OmronPlc, system: ActorSystem) extends Actor {
 }
 
 @Singleton
-class OmronPlc @Inject() (config: Configuration, system: ActorSystem, appLifecycle: ApplicationLifecycle, recordOps: RecordOps) {
+class OmronPlc @Inject() (config: Configuration, system: ActorSystem, appLifecycle: ApplicationLifecycle, recordOps: RecordOps2) {
 
   implicit val mtLoader: ConfigLoader[Seq[MonitorType]] = new ConfigLoader[Seq[MonitorType]] {
     def load(rootConfig: Config, path: String): Seq[MonitorType] = {
@@ -105,15 +105,14 @@ class OmronPlc @Inject() (config: Configuration, system: ActorSystem, appLifecyc
   val plcConfig = config.get[OmronPlcConfig]("OmronPLC")
   val mtList = config.get[Seq[MonitorType]]("OmronPLC.monitorTypes")
   val mtIdxMap = {
-    val mtIds = mtList map (_.id) 
+    val mtIds = mtList map (_.id)
     val mtIdx = mtIds.zipWithIndex
     mtIdx.toMap
   }
   val mtCaseMap = {
-    val mtIdCasePair = mtList map (mt=>mt.id -> mt)
+    val mtIdCasePair = mtList map (mt => mt.id -> mt)
     mtIdCasePair.toMap
   }
-  
 
   val finsNet = {
     import HslCommunication.Core.Transfer._
@@ -136,11 +135,11 @@ class OmronPlc @Inject() (config: Configuration, system: ActorSystem, appLifecyc
   val collector = system.actorOf(Props(new OmronCollector(this, system)), "omron-collector")
 
   def readRealtimeValues = {
-    val ret = finsNet.ReadDouble("D0240", 20)
-    if (ret.IsSuccess)
-      (mtList.zip(ret.Content map { Some(_) })) map { r => RecordData(r._1, r._2) }
-    else {
-      Logger.error(s"Failed to read values ${ret.ErrorCode}")
+    val ret = readRecord
+    if (ret.isDefined) {
+      val record = ret.get
+      (mtList.zip(record.v map { r => Some(r.toDouble) })) map { r => RecordData(r._1, r._2) }
+    } else {
       mtList map { RecordData(_, None) }
     }
   }
@@ -158,8 +157,9 @@ class OmronPlc @Inject() (config: Configuration, system: ActorSystem, appLifecyc
     try {
       val ch = handleRet(finsNet.ReadInt16("D5270")).toInt
       val stat = handleRet(finsNet.ReadInt16("D5271")).toInt
-      val valueArray = handleRet(finsNet.ReadDouble("D5272", 21))
+      val valueArray = handleRet(finsNet.ReadFloat("D5272", 21))
       val mtValues = valueArray.take(20)
+      val mfc = valueArray(19)
       val flow = valueArray(20)
       val shortArray = handleRet(finsNet.ReadInt16("D5314", 6))
       val coeff = shortArray(0).toInt
@@ -173,8 +173,7 @@ class OmronPlc @Inject() (config: Configuration, system: ActorSystem, appLifecyc
       else
         LocalDateTime.of(year, month, day, hour, min)
 
-      val rec = Record(dt, ch, stat, mtValues, flow, coeff)
-      Logger.debug(rec.toString())
+      val rec = Record(ch, stat, mtValues, mfc, flow, coeff, dt)
       Some(rec)
     } catch {
       case ex: Exception =>
@@ -185,8 +184,8 @@ class OmronPlc @Inject() (config: Configuration, system: ActorSystem, appLifecyc
 
   def writeDB = {
     for (record <- readRecord) {
-      for (ret <- recordOps.create(record))
-        Logger.info("record has been written!")
+      recordOps.insert(record)
+      Logger.info("record has been written!")
     }
   }
 

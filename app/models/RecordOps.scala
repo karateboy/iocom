@@ -28,43 +28,42 @@ class RecordOps @Inject() (dbConfigProvider: DatabaseConfigProvider)(implicit ec
     l => java.sql.Timestamp.valueOf(l),
     t => t.toLocalDateTime)
 
-  /**
-   * Here we define the table. It will have a name of people
-   */
-  class RawDataTable(tag: Tag) extends Table[Record](tag, "rawData") {
-    def dt = column[LocalDateTime]("DT")
-    def ch = column[Int]("Ch")
-    def status = column[Int]("status")
-    def v1 = column[Double]("v1")
-    def v2 = column[Double]("v2")
-    def v3 = column[Double]("v3")
-    def v4 = column[Double]("v4")
-    def v5 = column[Double]("v5")
-    def v6 = column[Double]("v6")
-    def v7 = column[Double]("v7")
-    def v8 = column[Double]("v8")
-    def v9 = column[Double]("v9")
-    def v10 = column[Double]("v10")
-    def v11 = column[Double]("v11")
-    def v12 = column[Double]("v12")
-    def v13 = column[Double]("v13")
-    def v14 = column[Double]("v14")
-    def v15 = column[Double]("v15")
-    def v16 = column[Double]("v16")
-    def v17 = column[Double]("v17")
-    def v18 = column[Double]("v18")
-    def v19 = column[Double]("v19")
-    def v20 = column[Double]("v20")
-    def flow = column[Double]("flow")
-    def coeff = column[Int]("coeff")
 
+  class RawDataTable(tag: Tag) extends Table[Record](tag, "Data_Log") {
+    def ch = column[Int]("Ch_No")
+    def status = column[Int]("Data_St")
+    def v1 = column[Float]("AN01")
+    def v2 = column[Float]("AN02")
+    def v3 = column[Float]("AN03")
+    def v4 = column[Float]("AN04")
+    def v5 = column[Float]("AN05")
+    def v6 = column[Float]("AN06")
+    def v7 = column[Float]("AN07")
+    def v8 = column[Float]("AN08")
+    def v9 = column[Float]("AN09")
+    def v10 = column[Float]("AN10")
+    def v11 = column[Float]("AN11")
+    def v12 = column[Float]("AN12")
+    def v13 = column[Float]("AN13")
+    def v14 = column[Float]("AN14")
+    def v15 = column[Float]("AN15")
+    def v16 = column[Float]("AN16")
+    def v17 = column[Float]("AN17")
+    def v18 = column[Float]("AN18")
+    def v19 = column[Float]("AN19")
+    def v20 = column[Float]("AN20")
+    def mfc = column[Float]("MFC")
+    def flow = column[Float]("Flow")
+    def coeff = column[Int]("Coeff")
+    def dt = column[LocalDateTime]("DataTime")
+    
     def pk = primaryKey("pk_id", (dt, ch))
 
-    def * = (dt :: ch :: status ::
+    def * = (ch :: status ::
       v1 :: v2 :: v3 :: v4 :: v5 ::
       v6 :: v7 :: v8 :: v9 :: v10 ::
       v11 :: v12 :: v13 :: v14 :: v15 ::
-      v16 :: v17 :: v18 :: v19 :: v20 :: flow :: coeff :: HNil) <> (Record.intoRecord, Record.fromRecord)
+      v16 :: v17 :: v18 :: v19 :: v20 :: mfc :: flow :: coeff :: dt ::  HNil) <> (Record.intoRecord, Record.fromRecord)
   }
 
   /**
@@ -78,8 +77,8 @@ class RecordOps @Inject() (dbConfigProvider: DatabaseConfigProvider)(implicit ec
     import scala.concurrent.Await
 
     for (tables <- db.run(MTable.getTables)) {
-      if (!tables.exists(table => table.name.name == "rawData")) {
-        Logger.info("Create rawData tab")
+      if (!tables.exists(table => table.name.name == "Data_Log")) {
+        Logger.info("Create Data_Log tab")
         db.run(records.schema.create)
       }
     }
