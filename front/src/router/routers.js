@@ -83,7 +83,7 @@ export default [
           icon: 'md-trending-down',
           title: '歷史趨勢'
         },
-        component: () => import('@/view/single-page/home')
+        component: () => import('@/view/historyTrend/historyTrend')
       },
       {
         path: 'report',
@@ -92,7 +92,7 @@ export default [
           icon: 'md-book',
           title: '歷史資料'
         },
-        component: () => import('@/view/single-page/home')
+        component: () => import('@/view/historyData/historyData')
       }
     ]
   },

@@ -1,21 +1,12 @@
-<style lang="less">
-@import "../../styles/common.less";
-</style>
-
 <template>
     <div>
         <Row>
             <Col>
                 <Card>
                     <Form ref="historyTrend" :model="formItem" :rules="rules" :label-width="80">
-                        <FormItem label="測站" prop="monitors">
-                            <Select v-model="formItem.monitors" filterable multiple>
-                                <Option v-for="item in monitorList" :value="item._id" :key="item._id">{{ item.dp_no }}</Option>
-                            </Select>
-                        </FormItem>
                         <FormItem label="測項" prop="monitorTypes">
                             <Select v-model="formItem.monitorTypes" filterable multiple>
-                                <Option v-for="item in monitorTypeList" :value="item._id" :key="item._id">{{ item.desp }}</Option>
+                                <Option v-for="item in monitorTypeList" :value="item.id" :key="item._id">{{ item.desp }}</Option>
                             </Select>
                         </FormItem>
                         <FormItem label="單位" prop="reportUnit">
@@ -36,8 +27,8 @@
                         </FormItem>
                         <FormItem>
                             <Button type="primary" @click="handleSubmit">查詢</Button>
-                            <Button type="ghost" style="margin-left: 8px" @click="handleReset('historyTrend')">取消</Button>
-                            <Button type="ghost" style="margin-left: 8px" icon="document" :disabled="!downloadable" @click="downloadExcel">下載Excel</Button>
+                            <Button style="margin-left: 8px" @click="handleReset('historyTrend')">取消</Button>
+                            <Button style="margin-left: 8px" icon="document" :disabled="!downloadable" @click="downloadExcel">下載Excel</Button>
                         </FormItem>
                     </Form>
                 </Card>
@@ -51,157 +42,17 @@
     </div>
 </template>
 <style scoped>
-.normal {
-  color: black;
-}
-
-.over_internal_std {
-  color: DarkBlue;
-}
-
-.over_law_std {
-  color: DarkRed;
-}
-
-.calibration_status {
-  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#b4e391+0,61c419+50,b4e391+100;Green+3D */
-  background: #b4e391; /* Old browsers */
-  background: -moz-linear-gradient(
-    top,
-    #b4e391 0%,
-    #61c419 50%,
-    #b4e391 100%
-  ); /* FF3.6-15 */
-  background: -webkit-linear-gradient(
-    top,
-    #b4e391 0%,
-    #61c419 50%,
-    #b4e391 100%
-  ); /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(
-    to bottom,
-    #b4e391 0%,
-    #61c419 50%,
-    #b4e391 100%
-  ); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#b4e391', endColorstr='#b4e391',GradientType=0 ); /* IE6-9 */
-}
-.maintain_status {
-  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#e570e7+0,c85ec7+47,a849a3+100;Pink+3D+%233 */
-  background: #e570e7; /* Old browsers */
-  background: -moz-linear-gradient(top, #e570e7 0%, #c85ec7 47%, #a849a3 100%);
-  /* FF3.6-15 */
-  background: -webkit-linear-gradient(
-    top,
-    #e570e7 0%,
-    #c85ec7 47%,
-    #a849a3 100%
-  ); /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(
-    to bottom,
-    #e570e7 0%,
-    #c85ec7 47%,
-    #a849a3 100%
-  ); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e570e7', endColorstr='#a849a3',GradientType=0 ); /* IE6-9 */
-}
-.abnormal_status {
-  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ff3019+0,cf0404+100;Red+3D */
-  background: #ff3019; /* Old browsers */
-  background: -moz-linear-gradient(
-    top,
-    #ff3019 0%,
-    #cf0404 100%
-  ); /* FF3.6-15 */
-  background: -webkit-linear-gradient(
-    top,
-    #ff3019 0%,
-    #cf0404 100%
-  ); /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(
-    to bottom,
-    #ff3019 0%,
-    #cf0404 100%
-  ); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff3019', endColorstr='#cf0404',GradientType=0 ); /* IE6-9 */
-}
-.auto_audit_status {
-  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#d0e4f7+0,73b1e7+24,0a77d5+50,539fe1+79,87bcea+100;Blue+Pipe+%231 */
-  background: #d0e4f7; /* Old browsers */
-  background: -moz-linear-gradient(
-    top,
-    #d0e4f7 0%,
-    #73b1e7 24%,
-    #0a77d5 50%,
-    #539fe1 79%,
-    #87bcea 100%
-  );
-  /* FF3.6-15 */
-  background: -webkit-linear-gradient(
-    top,
-    #d0e4f7 0%,
-    #73b1e7 24%,
-    #0a77d5 50%,
-    #539fe1 79%,
-    #87bcea 100%
-  );
-  /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(
-    to bottom,
-    #d0e4f7 0%,
-    #73b1e7 24%,
-    #0a77d5 50%,
-    #539fe1 79%,
-    #87bcea 100%
-  ); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#d0e4f7', endColorstr='#87bcea',GradientType=0 );
-  /* IE6-9 */
-}
-.manual_audit_status {
-  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#f1e767+0,feb645+100;Yellow+3D */
-  background: #f1e767; /* Old browsers */
-  background: -moz-linear-gradient(top, #f1e767 0%, #feb645 100%);
-  /* FF3.6-15 */
-  background: -webkit-linear-gradient(
-    top,
-    #f1e767 0%,
-    #feb645 100%
-  ); /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(
-    to bottom,
-    #f1e767 0%,
-    #feb645 100%
-  ); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1e767', endColorstr='#feb645',GradientType=0 ); /* IE6-9 */
-}
 </style>
 <script>
 import highcharts from 'highcharts'
 import highchart_more from 'highcharts/highcharts-more'
 import exporting from 'highcharts/modules/exporting'
-import Cookies from 'js-cookie'
-import axios from 'axios'
-import moment from 'moment'
-import baseUrl from '../../baseUrl'
+import { getMonitorTypes, getHistoryData } from '@/api/data'
+
 export default {
   name: 'historyTrend',
-
   mounted() {
-    // Init monitorList
-    axios
-      .get('/Monitor')
-      .then(resp => {
-        this.monitorList.splice(0, this.monitorList.length)
-        for (let monitor of resp.data) {
-          this.monitorList.push(monitor)
-        }
-      })
-      .catch(err => {
-        alert(err)
-      })
-    // Init monitorTypeList
-    axios
-      .get('/MonitorType')
+    getMonitorTypes()
       .then(resp => {
         this.monitorTypeList.splice(0, this.monitorTypeList.length)
         for (let mt of resp.data) {
@@ -214,7 +65,6 @@ export default {
   },
   data() {
     return {
-      monitorList: [],
       monitorTypeList: [],
       reportUnit: [
         {
@@ -277,7 +127,6 @@ export default {
         }
       ],
       formItem: {
-        monitors: [],
         monitorTypes: [],
         dateRange: [],
         chartType: 'line',
@@ -285,15 +134,6 @@ export default {
         end: undefined
       },
       rules: {
-        monitors: [
-          {
-            required: true,
-            type: 'array',
-            min: 1,
-            message: '至少選擇一個測站',
-            trigger: 'change'
-          }
-        ],
         monitorTypes: [
           {
             required: true,
@@ -320,7 +160,7 @@ export default {
   },
   computed: {
     downloadable() {
-      return this.query_url.length != 0
+      return this.query_url.length !== 0
     }
   },
   methods: {
@@ -474,7 +314,7 @@ export default {
               ]
             }
           })
-          let myChart = highcharts.chart('reportDiv', ret)
+          highcharts.chart('reportDiv', ret)
         })
         .catch(err => {
           alert(err)

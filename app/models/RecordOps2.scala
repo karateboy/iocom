@@ -39,4 +39,25 @@ class RecordOps2 @Inject() ()(implicit ec: ExecutionContext) {
     }
   }
 
+  def getHistoryData(start: LocalDateTime, end: LocalDateTime) = DB localTx {
+    implicit session =>
+      sql"""
+        Select *
+        From Data_Log
+        Where DataTime >= $start and DataTime < $end
+        """.map(rs => {
+
+        val values =
+          for (i <- 1 to 20) yield rs.float("AN%02d".format(i))
+
+        Record(
+          ch = rs.int("Ch_No"),
+          stat = rs.int("Data_St"),
+          v = values,
+          mfc = rs.float("MFC"),
+          flow = rs.float("Flow"),
+          coeff = rs.int("Coeff"),
+          dt = rs.dateTime("DataTime").toLocalDateTime())
+      }).list.apply
+  }
 }

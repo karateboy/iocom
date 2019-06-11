@@ -185,7 +185,6 @@ class OmronPlc @Inject() (config: Configuration, system: ActorSystem, appLifecyc
   def writeDB = {
     for (record <- readRecord) {
       recordOps.insert(record)
-      Logger.info("record has been written!")
     }
   }
 
